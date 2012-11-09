@@ -25,7 +25,7 @@ namespace JobScheduler.ViewModels
         private CancellationTokenSource source;
 
         private bool _isActive;
-        private int _percentage;
+        private float _percentage;
 
         public bool IsActive
         {
@@ -48,17 +48,20 @@ namespace JobScheduler.ViewModels
                                                       UpdateInformation(e.Information);
                                                   };
 
-            var operation = new GetPrimeNumbers(source.Token, progress);
-            operation.EndIndex = 200;
-
+            var operation = new FtpDownloadFileOperation(source.Token, progress,
+                                                      "ftp://ftp.sunet.se/pub/tv+movies/imdb/directors.list.gz",
+            @"c:\temp\downloadtempdownload.gz");
             await operation.RunAsync();
+
+            var anotherOperation = new GZipUnzipOperation(source.Token, progress, operation.Destination, @"c:\temp\fol");
+            await anotherOperation.RunAsync();
 
         }
 
         private void UpdateInformation(string information)
         {
             Message.Add(information);
-            if (Message.Count > 5)
+            if (Message.Count > 10 )
                 Message.RemoveAt(0);
 
             OnPropertyChanged("Message");
@@ -68,7 +71,7 @@ namespace JobScheduler.ViewModels
 
         
 
-        public int Percentage
+        public float Percentage
         {
             get { return _percentage; }
             set { _percentage = value; OnPropertyChanged(); OnPropertyChanged("ProgessColor");}
@@ -78,6 +81,10 @@ namespace JobScheduler.ViewModels
         {
             get
             {
+                var result = (byte) Percentage;
+                if (result == 0)
+                    return new SolidColorBrush(Colors.NavajoWhite);
+
                 var red = Colors.Purple;
                 var green = Colors.Green;
 
