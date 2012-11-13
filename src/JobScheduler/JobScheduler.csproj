@@ -57,10 +57,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Model\AliasName.cs" />
+    <Compile Include="Model\CopyFileOperation.cs" />
     <Compile Include="Model\EventAggregator.cs" />
+    <Compile Include="Model\FtpDownloadFileOperation.cs" />
+    <Compile Include="Model\GZipUnzipOperation.cs" />
     <Compile Include="Model\ICancellationAndProgessContainer.cs" />
     <Compile Include="Model\Operation.cs" />
     <Compile Include="Model\OperationExtensions.cs" />
+    <Compile Include="Model\PartOfOperation.cs" />
+    <Compile Include="Model\StreamOperation.cs" />
     <Compile Include="Model\WindowExtensions.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Page Include="MainWindow.xaml">

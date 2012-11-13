@@ -26,6 +26,14 @@ namespace JobScheduler.ViewModels
 
         private bool _isActive;
         private float _percentage;
+        private bool _canCancel;
+        private string _job;
+
+        public string Job
+        {
+            get { return _job; }
+            set { _job = value; OnPropertyChanged(); }
+        }
 
         public bool IsActive
         {
@@ -39,6 +47,8 @@ namespace JobScheduler.ViewModels
                 return;
 
             source = new CancellationTokenSource();
+            source.Token.ThrowIfCancellationRequested();
+            OnPropertyChanged("CanCancel");
 
             Message = new ObservableCollection<string>();
             var progress = new Progress<ProgressInformation>();
@@ -48,18 +58,44 @@ namespace JobScheduler.ViewModels
                                                       UpdateInformation(e.Information);
                                                   };
 
-            var operation = new FtpDownloadFileOperation(source.Token, progress,
-                                                      "ftp://ftp.sunet.se/pub/tv+movies/imdb/directors.list.gz",
-            @"c:\temp\downloadtempdownload.gz");
-            await operation.RunAsync();
+            //var operation = new FtpDownloadFileOperation(source.Token, progress,
+            //                                          "ftp://ftp.sunet.se/pub/tv+movies/imdb/movies.list.gz",
+            //@"c:\temp\downloadtempdownload.gz");
+            //Job = "Job 1";
+            //await operation.RunAsync();
 
-            var anotherOperation = new GZipUnzipOperation(source.Token, progress, operation.Destination, @"c:\temp\fol");
-            await anotherOperation.RunAsync();
 
+
+            //var anotherOperation = new GZipUnzipOperation(source.Token, progress, @"c:\temp\downloadtempdownload.gz", @"c:\temp\fol.txt");
+            //Job = "Job 2";
+            //await anotherOperation.RunAsync();
+
+            //var thirdOperation = new CopyFileOperation(source.Token, progress, anotherOperation.Destination,
+            //                                            @"c:\temp\fol_copy.txt");
+            //Job = "Job 3";
+            //await thirdOperation.RunAsync();
+
+
+            var forthOperation = new ImdbProcessMovies(source.Token, progress, @"c:\temp\fol_copy.txt");
+            Job = "Extracting movies";
+            await forthOperation.RunAsync();
+
+
+            source = null;
+            OnPropertyChanged("CanCancel");
+
+        }
+
+        public bool CanCancel
+        {
+            get { return source != null; }
         }
 
         private void UpdateInformation(string information)
         {
+            if (String.IsNullOrWhiteSpace(information))
+                return;
+
             Message.Add(information);
             if (Message.Count > 10 )
                 Message.RemoveAt(0);
@@ -98,8 +134,11 @@ namespace JobScheduler.ViewModels
 
         public void Cancel()
         {
-            source.Cancel();
-            source = null;
+            if (source != null)
+            {
+                source.Cancel();
+                OnPropertyChanged("CanCancel");
+            }
         }
     }
 }
